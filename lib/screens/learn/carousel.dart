@@ -52,7 +52,8 @@ class ImageSwipe extends StatelessWidget {
           ),
           itemCount: 6,
           options: CarouselOptions(
-            height: Screen.height - 250 - Dashboard.openPlayerHeight,
+            height: (Screen.height - 250 - Dashboard.openPlayerHeight)
+                .clamp(0.0, double.infinity),
             viewportFraction: _isTip ? 0.75 : 0.85,
             enlargeCenterPage: true,
             autoPlay: _isTip,

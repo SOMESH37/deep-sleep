@@ -1,3 +1,4 @@
+import 'package:google_fonts/google_fonts.dart';
 import '/exporter.dart';
 
 final kAppTheme = ThemeData(
@@ -5,6 +6,7 @@ final kAppTheme = ThemeData(
   scaffoldBackgroundColor: Colours.scaffold,
   splashColor: Colors.transparent,
   highlightColor: Colors.transparent,
+  fontFamily: GoogleFonts.poppins().fontFamily,
   appBarTheme: const AppBarTheme(
     backgroundColor: Colors.transparent,
     elevation: 0,

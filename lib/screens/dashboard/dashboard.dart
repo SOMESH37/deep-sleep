@@ -127,14 +127,11 @@ class _DashboardState extends State<Dashboard>
                 middleColor: Colours.player,
                 closedColor: Colours.player,
                 closedShape: const RoundedRectangleBorder(),
-                openBuilder: (_, __) => const Player(),
+                openBuilder: (_, __) => OpenPlayer(),
                 closedBuilder: (_, action) => GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: action,
-                  child: SizedBox(
-                    height: false ? 0.0 : Dashboard.openPlayerHeight,
-                    child: const Player(isClosed: true),
-                  ),
+                  child: ClosedPlayer(),
                 ),
               ),
             ),

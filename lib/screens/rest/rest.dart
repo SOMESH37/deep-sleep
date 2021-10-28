@@ -1,4 +1,5 @@
 import '/exporter.dart';
+import 'data.dart';
 
 class Rest extends StatelessWidget {
   @override
@@ -22,8 +23,8 @@ class Rest extends StatelessWidget {
                   padding: const EdgeInsets.all(Dashboard.pad),
                   itemBuilder: (_, j) => i == 2 && j == 0
                       ? const RestTile.create()
-                      : const RestTile(),
-                  itemCount: 16,
+                      : RestTile(RestTileData.sleepItems[j]),
+                  itemCount: RestTileData.sleepItems.length,
                   separatorBuilder: (_, i) =>
                       const SizedBox(height: Dashboard.pad),
                 ),
@@ -37,12 +38,11 @@ class Rest extends StatelessWidget {
 }
 
 class RestTile extends StatelessWidget {
-  const RestTile() : _isCreate = false;
-  const RestTile.create() : _isCreate = true;
-  final bool _isCreate;
+  const RestTile(this.data);
+  const RestTile.create() : data = null;
+  final RestTileData? data;
   @override
   Widget build(BuildContext context) {
-    final icon = Random().nextInt(4);
     return Row(
       children: [
         Container(
@@ -52,42 +52,43 @@ class RestTile extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             image: DecorationImage(
               fit: BoxFit.cover,
-              image: AssetImage(Assets.splash.path),
+              image:
+                  AssetImage(data == null ? Assets.splash.path : data!.imgPath),
             ),
           ),
         ),
         Expanded(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: _isCreate
+            child: data == null
                 ? const Txt.title('Create mix')
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Txt.title('Mix name'),
-                      SizedBox(height: 4),
-                      Txt.body('298 plays | 34 min'),
+                    children: [
+                      Txt.title(data!.name),
+                      const SizedBox(height: 4),
+                      // Txt.body('298 plays | 34 min'),
                     ],
                   ),
           ),
         ),
-        if (!_isCreate)
+        if (data != null)
           IconButton(
             onPressed: () {},
             icon: Icon(
-              icon == 0
+              data!.downloadStatus == 0
                   ? Icons.download_rounded
-                  : icon == 1
+                  : data!.downloadStatus == 1
                       ? Icons.downloading_rounded
-                      : icon == 2
+                      : data!.downloadStatus == 2
                           ? Icons.done_rounded
                           : Icons.delete_forever_rounded,
             ),
-            tooltip: icon == 0
+            tooltip: data!.downloadStatus == 0
                 ? 'Download'
-                : icon == 1
+                : data!.downloadStatus == 1
                     ? 'Downloading'
-                    : icon == 2
+                    : data!.downloadStatus == 2
                         ? 'Downloaded'
                         : 'Delete',
           ),

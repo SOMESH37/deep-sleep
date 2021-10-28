@@ -3,9 +3,9 @@
 ///  FlutterGen
 /// *****************************************************
 
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter/services.dart';
 
 class Assets {
   Assets._();
@@ -22,6 +22,18 @@ class Assets {
       AssetGenImage('asset/onboard_three.png');
   static const AssetGenImage onboardTwo =
       AssetGenImage('asset/onboard_two.png');
+  static const AssetGenImage scenery1 = AssetGenImage('asset/scenery1.png');
+  static const AssetGenImage scenery10 = AssetGenImage('asset/scenery10.png');
+  static const AssetGenImage scenery11 = AssetGenImage('asset/scenery11.png');
+  static const AssetGenImage scenery12 = AssetGenImage('asset/scenery12.png');
+  static const AssetGenImage scenery2 = AssetGenImage('asset/scenery2.png');
+  static const AssetGenImage scenery3 = AssetGenImage('asset/scenery3.png');
+  static const AssetGenImage scenery4 = AssetGenImage('asset/scenery4.png');
+  static const AssetGenImage scenery5 = AssetGenImage('asset/scenery5.png');
+  static const AssetGenImage scenery6 = AssetGenImage('asset/scenery6.png');
+  static const AssetGenImage scenery7 = AssetGenImage('asset/scenery7.png');
+  static const AssetGenImage scenery8 = AssetGenImage('asset/scenery8.png');
+  static const AssetGenImage scenery9 = AssetGenImage('asset/scenery9.png');
   static const AssetGenImage splash = AssetGenImage('asset/splash.png');
 }
 

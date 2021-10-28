@@ -1,5 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
-
 import '/exporter.dart';
 
 class Setting extends StatefulWidget {
@@ -58,18 +56,18 @@ class _SettingState extends State<Setting> {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: Dashboard.pad)
                 .copyWith(left: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Enable Notifications'),
-                CupertinoSwitch(
-                  value: _isNoti,
-                  trackColor: Colours.tabUnselected,
-                  activeColor: Colours.elevationButton,
-                  onChanged: (_) => setState(() => _isNoti = !_isNoti),
-                )
-              ],
-            ),
+            // child: Row(
+            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //   children: [
+            //     const Text('Enable Notifications'),
+            //     CupertinoSwitch(
+            //       value: _isNoti,
+            //       trackColor: Colours.tabUnselected,
+            //       activeColor: Colours.elevationButton,
+            //       onChanged: (_) => setState(() => _isNoti = !_isNoti),
+            //     )
+            //   ],
+            // ),
           ),
           ...List.generate(
             3,
