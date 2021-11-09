@@ -43,56 +43,83 @@ class RestTile extends StatelessWidget {
   final RestTileData? data;
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          height: 64,
-          width: 64,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            image: DecorationImage(
-              fit: BoxFit.cover,
-              image:
-                  AssetImage(data == null ? Assets.splash.path : data!.imgPath),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        if (data != null) {
+          audioPlayer.open(
+            Audio.network(
+              data!.source,
+              cached: true,
+              metas: Metas(
+                title: data!.name,
+                artist: 'Good sleep',
+                image: MetasImage.asset(data!.imgPath),
+              ),
+            ),
+            forceOpen: true,
+            showNotification: true,
+            loopMode: LoopMode.single,
+            notificationSettings: const NotificationSettings(
+              stopEnabled: false,
+              nextEnabled: false,
+              prevEnabled: false,
+            ),
+          );
+        }
+      },
+      child: Row(
+        children: [
+          Container(
+            height: 64,
+            width: 64,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              image: DecorationImage(
+                fit: BoxFit.cover,
+                image: AssetImage(
+                  data == null ? Assets.splash.path : data!.imgPath,
+                ),
+              ),
             ),
           ),
-        ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: data == null
-                ? const Txt.title('Create mix')
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Txt.title(data!.name),
-                      const SizedBox(height: 4),
-                      // Txt.body('298 plays | 34 min'),
-                    ],
-                  ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: data == null
+                  ? const Txt.title('Create mix')
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Txt.title(data!.name),
+                        const SizedBox(height: 4),
+                        // Txt.body('298 plays | 34 min'),
+                      ],
+                    ),
+            ),
           ),
-        ),
-        if (data != null)
-          IconButton(
-            onPressed: () {},
-            icon: Icon(
-              data!.downloadStatus == 0
-                  ? Icons.download_rounded
+          if (data != null)
+            IconButton(
+              onPressed: () {},
+              icon: Icon(
+                data!.downloadStatus == 0
+                    ? Icons.download_rounded
+                    : data!.downloadStatus == 1
+                        ? Icons.downloading_rounded
+                        : data!.downloadStatus == 2
+                            ? Icons.done_rounded
+                            : Icons.delete_forever_rounded,
+              ),
+              tooltip: data!.downloadStatus == 0
+                  ? 'Download'
                   : data!.downloadStatus == 1
-                      ? Icons.downloading_rounded
+                      ? 'Downloading'
                       : data!.downloadStatus == 2
-                          ? Icons.done_rounded
-                          : Icons.delete_forever_rounded,
+                          ? 'Downloaded'
+                          : 'Delete',
             ),
-            tooltip: data!.downloadStatus == 0
-                ? 'Download'
-                : data!.downloadStatus == 1
-                    ? 'Downloading'
-                    : data!.downloadStatus == 2
-                        ? 'Downloaded'
-                        : 'Delete',
-          ),
-      ],
+        ],
+      ),
     );
   }
 }
