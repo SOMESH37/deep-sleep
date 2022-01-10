@@ -1,9 +1,18 @@
-import '/exporter.dart';
+import 'package:deep_sleep/exporter.dart';
 
 const _pad = EdgeInsets.all(32);
 final _playerDuration = kAnimationDuration * 0.3;
 const _smallIconSize = 32.0;
-late final AssetsAudioPlayer audioPlayer;
+Stopper? _stopper;
+late AssetsAudioPlayer audioPlayer;
+late AssetsAudioPlayer expPlayer;
+
+void closeAudioPlayer() {
+  audioPlayer
+    ..setPlaySpeed(1)
+    ..stop();
+  _stopper = null;
+}
 
 class ClosedPlayer extends StatefulWidget {
   static const closedProgressHeight = 1.2;
@@ -54,9 +63,7 @@ class _ClosedPlayerState extends State<ClosedPlayer> {
                   ),
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                      ),
+                      padding: const EdgeInsets.only(left: 16),
                       child: Align(
                         alignment: Alignment.centerLeft,
                         child: Txt.bigTitle(
@@ -66,25 +73,29 @@ class _ClosedPlayerState extends State<ClosedPlayer> {
                       ),
                     ),
                   ),
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => audioPlayer.playOrPause(),
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 16),
-                      child: Center(
-                        child: AnimatedSwitcher(
-                          duration: _playerDuration,
-                          switchInCurve: kAnimationCurve,
-                          switchOutCurve: kAnimationCurve,
-                          child: Icon(
-                            info.isPlaying
-                                ? Icons.pause_rounded
-                                : Icons.play_arrow_rounded,
-                            size: 32,
-                            key: UniqueKey(),
-                          ),
-                        ),
+                  IconButton(
+                    onPressed: () => audioPlayer.playOrPause(),
+                    icon: AnimatedSwitcher(
+                      duration: _playerDuration,
+                      switchInCurve: kAnimationCurve,
+                      switchOutCurve: kAnimationCurve,
+                      child: Icon(
+                        info.isPlaying
+                            ? Icons.pause_rounded
+                            : Icons.play_arrow_rounded,
+                        size: 32,
+                        key: ValueKey('Closed player : ${info.isPlaying}'),
                       ),
+                    ),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.only(right: 8),
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.close_rounded,
+                        size: 30,
+                      ),
+                      onPressed: closeAudioPlayer,
                     ),
                   ),
                 ],
@@ -103,35 +114,58 @@ class OpenPlayer extends StatefulWidget {
 }
 
 class _OpenPlayerState extends State<OpenPlayer> {
+  Color? imgColor;
+  String? currentImgPath;
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: audioPlayer.builderRealtimePlayingInfos(
-          builder: (_, info) {
-            if (info.current == null) {
-              return const SizedBox.shrink();
-            }
-            final data = info.current!.audio.audio;
-            return Column(
+    return audioPlayer.builderRealtimePlayingInfos(
+      builder: (_, info) {
+        if (info.current == null) {
+          Future.delayed(
+            const Duration(milliseconds: 4),
+            () => Navigator.maybePop(context),
+          );
+          return const SizedBox.shrink();
+        }
+        final data = info.current!.audio.audio;
+        final imgPath = data.metas.image!.path;
+        if (currentImgPath != imgPath) {
+          currentImgPath = imgPath;
+          PaletteGenerator.fromImageProvider(AssetImage(imgPath)).then(
+            (v) => mounted
+                ? setState(() => imgColor = v.dominantColor?.color)
+                : null,
+          );
+        }
+        return Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                imgColor ?? Colours.scaffold,
+                Colours.scaffold,
+                Colours.scaffold,
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
+          child: SafeArea(
+            child: Column(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      iconSize: 28,
-                      icon: const Icon(
-                        Icons.keyboard_arrow_down_rounded,
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      IconButton(
+                        tooltip: 'Hide player',
+                        iconSize: 28,
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.keyboard_arrow_down_rounded),
                       ),
-                    ),
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(
-                        Icons.more_vert_rounded,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 Expanded(
                   child: Padding(
@@ -179,6 +213,7 @@ class _OpenPlayerState extends State<OpenPlayer> {
                     children: [
                       audioPlayer.builderPlaySpeed(
                         builder: (_, speed) => IconButton(
+                          tooltip: 'Playback speed',
                           onPressed: () {
                             bottomSheet(
                               context,
@@ -195,6 +230,13 @@ class _OpenPlayerState extends State<OpenPlayer> {
                                   ...{0.5, 0.8, 1, 1.2, 1.5, 1.8, 2}
                                       .map(
                                         (e) => ListTile(
+                                          trailing: speed == e
+                                              ? const Icon(
+                                                  Icons.check_rounded,
+                                                  color:
+                                                      Colours.elevationButton,
+                                                )
+                                              : null,
                                           title: Text(
                                             '${e}x',
                                             style: speed == e
@@ -236,6 +278,7 @@ class _OpenPlayerState extends State<OpenPlayer> {
                         ),
                       ),
                       IconButton(
+                        tooltip: 'Seek 15 seconds backward',
                         onPressed: () {
                           audioPlayer.seekBy(const Duration(seconds: -15));
                         },
@@ -262,13 +305,14 @@ class _OpenPlayerState extends State<OpenPlayer> {
                                   ? Icons.pause_rounded
                                   : Icons.play_arrow_rounded,
                               size: 48,
-                              key: UniqueKey(),
+                              key: ValueKey('Open player : ${info.isPlaying}'),
                               color: Colours.scaffold,
                             ),
                           ),
                         ),
                       ),
                       IconButton(
+                        tooltip: 'Seek 15 seconds forward',
                         onPressed: () {
                           audioPlayer.seekBy(const Duration(seconds: 15));
                         },
@@ -278,6 +322,7 @@ class _OpenPlayerState extends State<OpenPlayer> {
                         ),
                       ),
                       IconButton(
+                        tooltip: 'Sleep timer',
                         onPressed: () {
                           bottomSheet(
                             context,
@@ -291,34 +336,46 @@ class _OpenPlayerState extends State<OpenPlayer> {
                                     ),
                                   ),
                                 ),
-                                ...{5, 10, 15, 30, 45, 60, 90}
+                                if (_stopper?.isActive ?? false)
+                                  ListTile(
+                                    title: Text(
+                                      'Turn off timer (${_stopper!.remainingTime.inMinutes} minutes left)',
+                                      style: const TextStyle(
+                                        color: Colours.elevationButton,
+                                      ),
+                                    ),
+                                    onTap: () {
+                                      _stopper?.dispose();
+                                      _stopper = null;
+                                      Navigator.pop(context);
+                                    },
+                                  ),
+                                ...{10, 15, 30, 60, 90}
                                     .map(
                                       (e) => ListTile(
-                                        title: Text(
-                                          '$e minutes',
-                                          style: audioPlayer.id == ''
-                                              ? const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  color:
-                                                      Colours.elevationButton,
-                                                )
-                                              : null,
-                                        ),
-                                        onTap: () => Navigator.pop(
-                                          context,
-                                          e,
-                                        ),
+                                        title: Text('$e minutes'),
+                                        onTap: () {
+                                          if (_stopper == null) {
+                                            _stopper = Stopper(
+                                              e * 60,
+                                              closeAudioPlayer,
+                                            );
+                                          } else {
+                                            _stopper!.updateTime(e * 60);
+                                          }
+                                          Navigator.pop(context);
+                                        },
                                       ),
                                     )
                                     .toList(),
                               ],
                             ),
-                          ).then(
-                            (v) => v is int ? null : null,
-                          );
+                          ).then((_) => setState(() {}));
                         },
                         iconSize: _smallIconSize * 0.7,
-                        color: true ? null : Colours.elevationButton,
+                        color: _stopper?.isActive ?? false
+                            ? Colours.elevationButton
+                            : null,
                         icon: const Icon(
                           CupertinoIcons.moon_zzz_fill,
                         ),
@@ -327,10 +384,10 @@ class _OpenPlayerState extends State<OpenPlayer> {
                   ),
                 ),
               ],
-            );
-          },
-        ),
-      ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -401,8 +458,8 @@ class _PositionSeekWidgetState extends State<PositionSeekWidget> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Txt.body(durationToString(widget.currentPosition)),
-                Txt.body(durationToString(widget.duration)),
+                Txt.body(widget.currentPosition.durationToString),
+                Txt.body(widget.duration.durationToString),
               ],
             ),
           ),
@@ -410,57 +467,4 @@ class _PositionSeekWidgetState extends State<PositionSeekWidget> {
       ),
     );
   }
-}
-
-String durationToString(Duration duration) {
-  String twoDigits(int n) {
-    if (n >= 10) return '$n';
-    return '0$n';
-  }
-
-  final twoDigitHours = twoDigits(duration.inHours);
-  final twoDigitMinutes =
-      twoDigits(duration.inMinutes.remainder(Duration.minutesPerHour));
-  final twoDigitSeconds =
-      twoDigits(duration.inSeconds.remainder(Duration.secondsPerMinute));
-  return '${(int.tryParse(twoDigitHours) ?? 0) > 0 ? '$twoDigitHours:' : ''}$twoDigitMinutes:$twoDigitSeconds';
-}
-
-Future bottomSheet(
-  BuildContext context,
-  Widget child, {
-  double gradientPercentage = 0.12,
-}) {
-  return showModalBottomSheet(
-    context: context,
-    backgroundColor: Colors.transparent,
-    isScrollControlled: true,
-    builder: (context) => Column(
-      children: [
-        Expanded(
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => Navigator.pop(context),
-          ),
-        ),
-        Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              stops: [0, gradientPercentage, 1],
-              colors: const [
-                Colors.transparent,
-                Colours.scaffold,
-                Colours.scaffold,
-              ],
-            ),
-          ),
-          child: SafeArea(
-            child: child,
-          ),
-        ),
-      ],
-    ),
-  );
 }

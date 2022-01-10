@@ -1,5 +1,5 @@
+import 'package:deep_sleep/exporter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '/exporter.dart';
 
 final kAppTheme = ThemeData(
   brightness: Brightness.dark,

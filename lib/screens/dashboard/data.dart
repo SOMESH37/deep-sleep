@@ -1,4 +1,4 @@
-import '/exporter.dart';
+import 'package:deep_sleep/exporter.dart';
 
 class DrawerData {
   String name;
@@ -10,11 +10,6 @@ class DrawerData {
     this.screen,
   });
   static final items = <DrawerData>[
-    // DrawerData._(
-    //   name: 'Notifications',
-    //   icon: Icons.notifications_rounded,
-    //   screen: Notifications(),
-    // ),
     DrawerData._(
       name: 'Usage',
       icon: Icons.bar_chart_rounded,
@@ -33,12 +28,13 @@ class DrawerData {
 }
 
 class DashboardData {
-  String name;
-  String appBarTitle;
-  String iconPath;
-  Widget screen;
-  GlobalKey<NavigatorState> navigatorKey;
-  DashboardData._({
+  final String name;
+  final String appBarTitle;
+  final String iconPath;
+  final Widget screen;
+  final GlobalKey<NavigatorState> navigatorKey;
+
+  const DashboardData._({
     required this.name,
     required this.screen,
     required this.appBarTitle,
@@ -49,7 +45,7 @@ class DashboardData {
     DashboardData._(
       name: 'For you',
       screen: ForYou(),
-      appBarTitle: 'For you',
+      appBarTitle: 'Welcome back 👋',
       iconPath: Assets.navBarOne.path,
       navigatorKey: GlobalKey<NavigatorState>(),
     ),

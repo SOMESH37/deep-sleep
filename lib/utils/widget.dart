@@ -1,5 +1,54 @@
+import 'package:deep_sleep/exporter.dart';
 import 'package:marquee/marquee.dart';
-import '/exporter.dart';
+
+Future<T?> bottomSheet<T>(
+  BuildContext context,
+  Widget child, {
+  double gradientPercentage = 0.12,
+  bool useRootNav = false,
+}) {
+  return showModalBottomSheet<T?>(
+    context: context,
+    useRootNavigator: useRootNav,
+    backgroundColor: Colors.transparent,
+    isScrollControlled: true,
+    builder: (context) => Column(
+      children: [
+        Expanded(
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => Navigator.pop(context),
+          ),
+        ),
+        ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: Screen.height,
+            maxWidth: Screen.width,
+          ),
+          child: SingleChildScrollView(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  stops: [0, gradientPercentage, 1],
+                  colors: const [
+                    Colors.transparent,
+                    Colours.scaffold,
+                    Colours.scaffold,
+                  ],
+                ),
+              ),
+              child: SafeArea(
+                child: child,
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
 class AppTabBar extends StatelessWidget {
   const AppTabBar({required this.tabs});

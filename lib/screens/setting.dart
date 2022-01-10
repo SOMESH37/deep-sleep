@@ -1,4 +1,4 @@
-import '/exporter.dart';
+import 'package:deep_sleep/exporter.dart';
 
 class Setting extends StatefulWidget {
   @override
@@ -6,8 +6,15 @@ class Setting extends StatefulWidget {
 }
 
 class _SettingState extends State<Setting> {
-  final user = FirebaseAuth.instance.currentUser!;
-  bool _isNoti = true;
+  late final user = FirebaseAuth.instance.currentUser!;
+  String showName(String? name) {
+    if (name != null && name.isNotEmpty) {
+      return name;
+    } else {
+      return 'Anonymous';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,13 +47,14 @@ class _SettingState extends State<Setting> {
                   child: user.photoURL.netImg,
                 ),
                 Expanded(
-                  child: Txt.title(user.displayName ?? 'Anonymous'),
+                  child: Txt.title(showName(user.displayName)),
                 ),
                 TextButton(
                   onPressed: () {
-                    FirebaseAuth.instance
-                        .signOut()
-                        .then((_) => Navigator.pop(context));
+                    FirebaseAuth.instance.signOut().then((_) {
+                      HiveHelper.signOut();
+                      Navigator.pop(context);
+                    });
                   },
                   child: const Text('Logout'),
                 ),
@@ -56,25 +64,28 @@ class _SettingState extends State<Setting> {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: Dashboard.pad)
                 .copyWith(left: 8),
-            // child: Row(
-            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            //   children: [
-            //     const Text('Enable Notifications'),
-            //     CupertinoSwitch(
-            //       value: _isNoti,
-            //       trackColor: Colours.tabUnselected,
-            //       activeColor: Colours.elevationButton,
-            //       onChanged: (_) => setState(() => _isNoti = !_isNoti),
-            //     )
-            //   ],
-            // ),
           ),
           ...List.generate(
             3,
             (i) => Row(
               children: [
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    if (i == 0) {
+                      launch(
+                        Uri(
+                          scheme: 'mailto',
+                          path: 'akhil.sharma@myrl.tech',
+                        ).toString(),
+                      );
+                    } else if (i == 1) {
+                      const DetailedView('Term of service', kTermOfService)
+                          .push(context);
+                    } else {
+                      const DetailedView('Privacy policy', kPrivacyPolicy)
+                          .push(context);
+                    }
+                  },
                   child: Text(
                     i == 0
                         ? 'Contact us'
@@ -87,6 +98,26 @@ class _SettingState extends State<Setting> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class DetailedView extends StatelessWidget {
+  const DetailedView(this.title, this.item);
+  final String title;
+  final String item;
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(title),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(Dashboard.pad),
+        child: SafeArea(
+          child: Text(item),
+        ),
       ),
     );
   }

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Deep Sleep</string>
+    <string name="facebook_app_id">3132559183678499</string>
+    <string name="fb_login_protocol_scheme">fb3132559183678499</string>
+    <string name="facebook_client_token">844d0755056950e534c1719cffab260e</string>
+</resources>

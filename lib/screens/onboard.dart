@@ -1,4 +1,4 @@
-import '/exporter.dart';
+import 'package:deep_sleep/exporter.dart';
 
 class OnBoard extends StatefulWidget {
   const OnBoard();
@@ -15,17 +15,17 @@ class _OnBoardState extends State<OnBoard> {
     _OnboardData(
       title: 'In Deep Sleep You',
       description: 'Listen to calming ASMR sounds',
-      image: Assets.onboardOne.image(height: _imgHeight),
+      image: Assets.scenery10,
     ),
     _OnboardData(
       title: 'And',
       description: 'Create your own mix',
-      image: Assets.onboardTwo.image(height: _imgHeight),
+      image: Assets.scenery1,
     ),
     _OnboardData(
       title: 'To',
       description: 'Sleep Well',
-      image: Assets.onboardThree.image(height: _imgHeight),
+      image: Assets.scenery11,
     ),
   ];
   void toLogin() => Login().push(context);
@@ -48,7 +48,18 @@ class _OnBoardState extends State<OnBoard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Spacer(),
-                      Center(child: temp.image),
+                      Center(
+                        child: ClipRRect(
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(32),
+                          ),
+                          child: temp.image.image(
+                            height: _imgHeight,
+                            width: _imgHeight,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
                       const Spacer(),
                       Padding(
                         padding: EdgeInsets.all(_pad),
@@ -96,9 +107,10 @@ class _OnBoardState extends State<OnBoard> {
                         height: _current == idx ? 8.0 : 6.4,
                         margin: const EdgeInsets.symmetric(horizontal: 2.0),
                         decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white
-                                .withOpacity(_current == idx ? 0.9 : 0.3)),
+                          shape: BoxShape.circle,
+                          color: Colors.white
+                              .withOpacity(_current == idx ? 0.9 : 0.3),
+                        ),
                       ),
                     ),
                   ),
@@ -119,13 +131,16 @@ class _OnBoardState extends State<OnBoard> {
                   toLogin();
                 } else {
                   _controller.nextPage(
-                      duration: kAnimationDuration, curve: kAnimationCurve);
+                    duration: kAnimationDuration,
+                    curve: kAnimationCurve,
+                  );
                 }
               },
               style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(80, 40),
-                  primary:
-                      _current == _data.length - 1 ? null : Colors.transparent),
+                minimumSize: const Size(80, 40),
+                primary:
+                    _current == _data.length - 1 ? null : Colors.transparent,
+              ),
               child: Row(
                 children: [
                   Text(
@@ -133,8 +148,9 @@ class _OnBoardState extends State<OnBoard> {
                     style: const TextStyle(fontSize: 18),
                   ),
                   ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 18),
-                      child: const Icon(Icons.chevron_right_rounded)),
+                    constraints: const BoxConstraints(maxWidth: 18),
+                    child: const Icon(Icons.chevron_right_rounded),
+                  ),
                 ],
               ),
             ),
@@ -148,7 +164,7 @@ class _OnBoardState extends State<OnBoard> {
 class _OnboardData {
   String title;
   String description;
-  Image image;
+  AssetGenImage image;
   _OnboardData({
     required this.title,
     required this.description,

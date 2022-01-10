@@ -1,4 +1,4 @@
-package com.example.deep_sleep
+package com.myrl.deep_sleep
 
 import io.flutter.embedding.android.FlutterActivity
 

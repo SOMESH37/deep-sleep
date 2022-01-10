@@ -1,16 +1,24 @@
+import 'package:deep_sleep/exporter.dart';
 import 'package:firebase_core/firebase_core.dart';
-import '/screens/rest/data.dart';
-import 'exporter.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: Colours.scaffold,
+      systemNavigationBarIconBrightness: Brightness.dark,
+    ),
+  );
   SystemChrome.setPreferredOrientations(const [
     DeviceOrientation.portraitDown,
     DeviceOrientation.portraitUp,
   ]);
   AssetsAudioPlayer.setupNotificationsOpenAction((_) => true);
   await Future.wait([
-    Hive.initFlutter(),
+    HiveHelper.init(),
+    MyDirectory.init(),
     Firebase.initializeApp(),
   ]);
   runApp(MyApp());
@@ -21,69 +29,47 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> /* with WidgetsBindingObserver */ {
+class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    // WidgetsBinding.instance?.addObserver(this);
-    audioPlayer = AssetsAudioPlayer.withId('player')
-        // ..open(
-        //   Playlist(
-        //     audios: List.generate(
-        //       RestTileData.sleepItems.length,
-        //       (i) {
-        //         final item = RestTileData.sleepItems[i];
-        //         return Audio.network(
-        //           item.source,
-        //           cached: true,
-        //           metas: Metas(
-        //             title: item.name,
-        //             artist: 'Good sleep',
-        //             image: MetasImage.asset(item.imgPath),
-        //           ),
-        //         );
-        //       },
-        //     ),
-        //   ),
-        //   autoStart: false,
-        //   showNotification: true,
-        //   loopMode: LoopMode.single,
-        //   notificationSettings: const NotificationSettings(
-        //     stopEnabled: false,
-        //     nextEnabled: false,
-        //     prevEnabled: false,
-        //   ),
-        // )
-        ;
+    final cache = AssetsAudioPlayerCache(
+      audioKeyTransformer: (audio) async =>
+          removeHttpSpecialCharsFromStrings(audio.path),
+      cachePathProvider: (_, key) async => '${MyDirectory.getCachePath}/$key',
+    );
+    audioPlayer = AssetsAudioPlayer.withId('main')
+      ..cachePathProvider = cache
+      ..realtimePlayingInfos.listen((v) {
+        if (v.isPlaying) {
+          HiveHelper.saveUsageData(v.current?.audio.audio.metas.title);
+        }
+      });
+    expPlayer = AssetsAudioPlayer.withId('exp')..cachePathProvider = cache;
   }
 
   @override
   void dispose() {
-    // WidgetsBinding.instance?.removeObserver(this);
     audioPlayer.dispose();
+    expPlayer.dispose();
     super.dispose();
   }
-
-  // @override
-  // void didChangeAppLifecycleState(AppLifecycleState state) {}
 
   @override
   Widget build(BuildContext context) {
     return NotificationListener<OverscrollIndicatorNotification>(
       onNotification: (over) {
-        over.disallowGlow();
+        over.disallowIndicator();
         return false;
       },
       child: MaterialApp(
         // debugShowMaterialGrid: true,
-        navigatorKey: kAppNavigatorKey,
         title: 'Deep Sleep',
         theme: kAppTheme,
         home: StreamBuilder(
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (context, snap) {
             Screen.init(context);
-            HiveHelper.init(context);
             if (snap.connectionState == ConnectionState.waiting) {
               return const Scaffold(
                 body: Center(

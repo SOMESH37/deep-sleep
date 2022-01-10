@@ -1,6 +1,6 @@
-import '/exporter.dart';
-import 'data.dart';
-import 'drawer.dart';
+import 'package:deep_sleep/exporter.dart';
+import 'package:deep_sleep/screens/dashboard/data.dart';
+import 'package:deep_sleep/screens/dashboard/drawer.dart';
 
 class Dashboard extends StatefulWidget {
   static const pad = 16.0;
@@ -34,7 +34,16 @@ class _DashboardState extends State<Dashboard>
   void changeTitle(String? t) => setState(() => _title = t);
 
   Future<bool> _onWillPop() async {
-    return false;
+    if (await DashboardData.items[_currentIndex].navigatorKey.currentState
+            ?.maybePop() ??
+        false) {
+      changeTitle(null);
+      return false;
+    } else if (_currentIndex != 0) {
+      setState(() => _currentIndex = 0);
+      return false;
+    }
+    return true;
   }
 
   @override
@@ -54,7 +63,7 @@ class _DashboardState extends State<Dashboard>
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
-        drawer: const AppDrawer(),
+        drawer: AppDrawer(),
         appBar: AppBar(
           automaticallyImplyLeading: false,
           titleSpacing: 0,
@@ -120,19 +129,14 @@ class _DashboardState extends State<Dashboard>
             AnimatedSize(
               curve: kAnimationCurve,
               duration: kAnimationDuration,
-              vsync: this,
-              child: OpenContainer(
+              child: OpenContainer<Color>(
                 closedElevation: 4,
                 openColor: Colours.player,
                 middleColor: Colours.player,
                 closedColor: Colours.player,
                 closedShape: const RoundedRectangleBorder(),
                 openBuilder: (_, __) => OpenPlayer(),
-                closedBuilder: (_, action) => GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: action,
-                  child: ClosedPlayer(),
-                ),
+                closedBuilder: (_, __) => ClosedPlayer(),
               ),
             ),
             Container(
@@ -147,30 +151,31 @@ class _DashboardState extends State<Dashboard>
                       child: AnimatedSize(
                         curve: kAnimationCurve,
                         duration: kAnimationDuration,
-                        vsync: this,
                         child: Container(
                           width: Screen.width / DashboardData.items.length,
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              AnimatedOpacity(
-                                curve: kAnimationCurve,
-                                opacity: _currentIndex == i ? 1 : 0.5,
-                                duration: kAnimationDuration,
-                                child: SvgPicture.asset(
+                          child: AnimatedOpacity(
+                            curve: kAnimationCurve,
+                            opacity: _currentIndex == i ? 1 : 0.46,
+                            duration: kAnimationDuration,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SvgPicture.asset(
                                   item.iconPath,
-                                  height: _currentIndex == i ? 32 : 24,
+                                  height: 26,
                                 ),
-                              ),
-                              if (_currentIndex != i) const SizedBox(height: 4),
-                              if (_currentIndex != i)
+                                const SizedBox(height: 4),
                                 Text(
                                   item.name,
                                   maxLines: 1,
-                                  style: const TextStyle(color: Colors.white70),
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 13,
+                                  ),
                                 ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),

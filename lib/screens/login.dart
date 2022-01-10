@@ -1,4 +1,5 @@
-import '/exporter.dart';
+import 'package:deep_sleep/exporter.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 
 class Login extends StatefulWidget {
   @override
@@ -7,7 +8,9 @@ class Login extends StatefulWidget {
 
 class _LoginState extends State<Login> {
   int loading = -1;
+
   void setLoading(int i) => mounted ? setState(() => loading = i) : null;
+
   Future<void> googleLogin(BuildContext context) async {
     final sign = GoogleSignIn(scopes: ['email', 'profile']);
     final user = await sign.signIn();
@@ -22,6 +25,17 @@ class _LoginState extends State<Login> {
         )
         .then((_) => Navigator.pop(context));
     await sign.disconnect();
+  }
+
+  Future<void> fbLogin(BuildContext context) async {
+    final result = await FacebookAuth.instance.login();
+    if (result.status == LoginStatus.success) {
+      await FirebaseAuth.instance
+          .signInWithCredential(
+            FacebookAuthProvider.credential(result.accessToken!.token),
+          )
+          .then((_) => Navigator.pop(context));
+    }
   }
 
   @override
@@ -59,7 +73,7 @@ class _LoginState extends State<Login> {
                                 if (loading != -1) return;
                                 if (i == 0) {
                                   setLoading(0);
-                                  // TODO: fb login
+                                  fbLogin(context).then((_) => setLoading(-1));
                                   setLoading(-1);
                                 } else {
                                   setLoading(1);
@@ -74,10 +88,12 @@ class _LoginState extends State<Login> {
                               ),
                               child: loading == 0 && i == 0
                                   ? const CircularProgressIndicator(
-                                      color: Colors.white)
+                                      color: Colors.white,
+                                    )
                                   : loading == 1 && i == 2
                                       ? const CircularProgressIndicator(
-                                          color: Colors.black)
+                                          color: Colors.black,
+                                        )
                                       : Row(
                                           mainAxisAlignment:
                                               MainAxisAlignment.center,
@@ -93,7 +109,8 @@ class _LoginState extends State<Login> {
                                               const Text(
                                                 'Google',
                                                 style: TextStyle(
-                                                    color: Colors.black),
+                                                  color: Colors.black,
+                                                ),
                                               ),
                                           ],
                                         ),

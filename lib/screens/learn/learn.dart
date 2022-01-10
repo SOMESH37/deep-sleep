@@ -1,6 +1,6 @@
-import '/exporter.dart';
-import 'article.dart';
-import 'carousel.dart';
+import 'package:deep_sleep/exporter.dart';
+import 'package:deep_sleep/screens/learn/article.dart';
+import 'package:deep_sleep/screens/learn/carousel.dart';
 
 class Learn extends StatelessWidget {
   @override
