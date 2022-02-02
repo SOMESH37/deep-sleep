@@ -38,7 +38,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.myrl.deep_sleep"
+        applicationId "com.example.deep_sleep"
         minSdkVersion 21
         targetSdkVersion 30
         versionCode flutterVersionCode.toInteger()
@@ -56,7 +56,9 @@ android {
    
    buildTypes {
        release {
-           signingConfig signingConfigs.release
+           // Signing with the debug keys for now, so `flutter run --release` works.
+           signingConfig signingConfigs.debug
+           // signingConfig signingConfigs.release
        }
    }
 
