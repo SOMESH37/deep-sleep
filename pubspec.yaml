@@ -1,6 +1,6 @@
 name: deep_sleep
 description: Application that helps to meditate and sleep
-version: 1.3.0+5
+version: 1.4.0+7
 
 environment:
   sdk: ">=2.15.0 <3.0.0"
@@ -11,6 +11,7 @@ dependencies:
   auto_size_text: ^3.0.0-nullsafety.0
   cached_network_image: ^3.1.0
   carousel_slider: ^4.0.0
+  cloud_firestore: ^3.1.7
   cupertino_icons: ^1.0.3
   firebase_auth: ^3.3.4
   firebase_core: ^1.10.6

@@ -18,14 +18,26 @@ class RestTileData {
           image: MetasImage.asset(imgPath),
         );
 
-  void play() {
+  Audio audio({String? art}) {
     final isOffline =
         HiveHelper.downloadStat(name) == DownloadStatus.downloaded;
+    return isOffline
+        ? Audio.file(
+            '${MyDirectory.getDownloadPath}/$name',
+            metas: meta.copyWith(artist: art),
+          )
+        : Audio.network(
+            source,
+            cached: true,
+            metas: meta.copyWith(artist: art),
+          );
+  }
+
+  void play() {
+    if (audioPlayer.isBuffering.value) return;
     expPlayer.stop();
     audioPlayer.open(
-      isOffline
-          ? Audio.file('${MyDirectory.getDownloadPath}/$name', metas: meta)
-          : Audio.network(source, cached: true, metas: meta),
+      audio(),
       showNotification: true,
       loopMode: LoopMode.single,
       notificationSettings: const NotificationSettings(
@@ -35,7 +47,7 @@ class RestTileData {
     );
   }
 
-  Future<void> download() async {
+  void download() {
     final options = DownloaderUtils(
       file: File('${MyDirectory.getDownloadPath}/$name'),
       onDone: () {

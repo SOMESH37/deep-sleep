@@ -11,23 +11,7 @@ class _OnBoardState extends State<OnBoard> {
   final _pad = 16.0;
   late final _controller = PageController();
   static final _imgHeight = Screen.width * 0.7;
-  final _data = <_OnboardData>[
-    _OnboardData(
-      title: 'In Deep Sleep You',
-      description: 'Listen to calming ASMR sounds',
-      image: Assets.scenery10,
-    ),
-    _OnboardData(
-      title: 'And',
-      description: 'Create your own mix',
-      image: Assets.scenery1,
-    ),
-    _OnboardData(
-      title: 'To',
-      description: 'Sleep Well',
-      image: Assets.scenery11,
-    ),
-  ];
+
   void toLogin() => Login().push(context);
   @override
   Widget build(BuildContext context) {
@@ -37,9 +21,9 @@ class _OnBoardState extends State<OnBoard> {
           PageView.builder(
             controller: _controller,
             onPageChanged: (i) => setState(() => _current = i),
-            itemCount: _data.length,
+            itemCount: _OnboardData.items.length,
             itemBuilder: (_, i) {
-              final temp = _data[i];
+              final temp = _OnboardData.items[i];
               return Center(
                 child: SizedBox(
                   height: Screen.height * 0.6,
@@ -101,7 +85,7 @@ class _OnBoardState extends State<OnBoard> {
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(
-                      _data.length,
+                      _OnboardData.items.length,
                       (idx) => Container(
                         width: _current == idx ? 8.0 : 6.4,
                         height: _current == idx ? 8.0 : 6.4,
@@ -127,7 +111,7 @@ class _OnBoardState extends State<OnBoard> {
             right: _pad,
             child: ElevatedButton(
               onPressed: () {
-                if (_current == _data.length - 1) {
+                if (_current == _OnboardData.items.length - 1) {
                   toLogin();
                 } else {
                   _controller.nextPage(
@@ -138,15 +122,16 @@ class _OnBoardState extends State<OnBoard> {
               },
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(80, 40),
-                primary:
-                    _current == _data.length - 1 ? null : Colors.transparent,
+                primary: _current == _OnboardData.items.length - 1
+                    ? null
+                    : Colors.transparent,
               ),
               child: Row(
                 children: [
-                  Text(
-                    _current == _data.length - 1 ? 'Start' : 'Next',
-                    style: const TextStyle(fontSize: 18),
-                  ),
+                  if (_current == _OnboardData.items.length - 1)
+                    const Text('Start', style: TextStyle(fontSize: 18))
+                  else
+                    const Text('Next', style: TextStyle(fontSize: 18)),
                   ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 18),
                     child: const Icon(Icons.chevron_right_rounded),
@@ -162,12 +147,29 @@ class _OnBoardState extends State<OnBoard> {
 }
 
 class _OnboardData {
-  String title;
-  String description;
-  AssetGenImage image;
-  _OnboardData({
+  final String title;
+  final String description;
+  final AssetGenImage image;
+  const _OnboardData({
     required this.title,
     required this.description,
     required this.image,
   });
+  static const items = [
+    _OnboardData(
+      title: 'In Deep Sleep You',
+      description: 'Listen to calming ASMR sounds',
+      image: Assets.scenery10,
+    ),
+    _OnboardData(
+      title: 'And',
+      description: 'Create your own mix',
+      image: Assets.scenery1,
+    ),
+    _OnboardData(
+      title: 'To',
+      description: 'Sleep Well',
+      image: Assets.scenery16,
+    ),
+  ];
 }

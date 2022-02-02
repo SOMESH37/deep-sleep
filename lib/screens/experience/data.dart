@@ -12,7 +12,9 @@ class ExpTileData {
     required this.artist,
   });
   void play() {
+    if (expPlayer.isBuffering.value) return;
     audioPlayer.pause();
+    audioPlayer.showNotification = false;
     expPlayer.open(
       Audio.network(
         source,
@@ -23,13 +25,7 @@ class ExpTileData {
           image: MetasImage.asset(imgPath),
         ),
       ),
-      showNotification: true,
       loopMode: LoopMode.single,
-      notificationSettings: const NotificationSettings(
-        nextEnabled: false,
-        prevEnabled: false,
-        stopEnabled: false,
-      ),
     );
   }
 

@@ -29,6 +29,7 @@ class _ExpPageState extends State<ExpPage> {
 
   void closeAndPop() {
     expPlayer.stop();
+    audioPlayer.showNotification = true;
     Navigator.pop(context);
   }
 

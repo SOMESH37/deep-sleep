@@ -50,7 +50,9 @@ class _CreateMixState extends State<CreateMix> {
                     textAlign: TextAlign.center,
                     inputFormatters: [
                       LengthLimitingTextInputFormatter(32),
-                      FilteringTextInputFormatter.singleLineFormatter,
+                      FilteringTextInputFormatter.allow(
+                        RegExp('[0-9_.a-z A-Z]'),
+                      ),
                     ],
                     maxLengthEnforcement: MaxLengthEnforcement.enforced,
                     textCapitalization: TextCapitalization.sentences,
@@ -80,7 +82,9 @@ class _CreateMixState extends State<CreateMix> {
                             RestTileData.items.any(
                               (e) => e.name.lowerCaseWithoutSpace == name,
                             )) &&
-                        _textCon.text.length > 1;
+                        _textCon.text.length > 1 &&
+                        // .isNotEmpty not working
+                        _textCon.text.trim() != '';
                     return Expanded(
                       child: TextButton(
                         onPressed: () {
@@ -89,8 +93,10 @@ class _CreateMixState extends State<CreateMix> {
                           } else if (isNameValid) {
                             Navigator.pushReplacement(
                               context,
-                              EditPlaylist(_textCon.text, isEditing: false)
-                                  .route,
+                              EditPlaylist(
+                                _textCon.text.trim(),
+                                isEditing: false,
+                              ).route,
                             );
                           }
                         },
@@ -127,7 +133,7 @@ class _EditPlaylistState extends State<EditPlaylist> {
   @override
   void initState() {
     super.initState();
-    _songs = HiveHelper.userMixesBox.get(widget.name) ?? [];
+    _songs = List.from(HiveHelper.userMixesBox.get(widget.name) ?? []);
   }
 
   @override
@@ -139,7 +145,10 @@ class _EditPlaylistState extends State<EditPlaylist> {
             ? [
                 IconButton(
                   onPressed: () {
-                    HiveHelper.userMixesBox.delete(widget.name);
+                    HiveHelper.userMixesBox
+                        .delete(widget.name)
+                        .then((_) => HiveHelper.putFireStore(onlyMix: true));
+
                     Navigator.pop(context);
                   },
                   tooltip: 'Delete',
@@ -197,7 +206,9 @@ class _EditPlaylistState extends State<EditPlaylist> {
       floatingActionButton: _songs.length > 1
           ? FloatingActionButton.extended(
               onPressed: () {
-                HiveHelper.userMixesBox.put(widget.name, _songs);
+                HiveHelper.userMixesBox
+                    .put(widget.name, _songs)
+                    .whenComplete(() => HiveHelper.putFireStore(onlyMix: true));
                 Navigator.pop(context);
               },
               label: const Text('Save'),

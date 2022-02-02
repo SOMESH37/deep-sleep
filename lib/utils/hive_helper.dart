@@ -1,37 +1,89 @@
 import 'package:deep_sleep/exporter.dart';
-import 'package:deep_sleep/screens/rest/data.dart';
+import 'package:deep_sleep/screens/experience/data.dart';
 
 enum DownloadStatus { notDownloaded, downloading, downloaded }
 
 class HiveHelper {
   HiveHelper._();
-
-  static late Box<Map> napUsageBox;
-  static late Box<Map> sleepUsageBox;
   static late Box<int> downloadStatBox;
   static late Box<List<String>> userMixesBox;
+  static late Box<Map> restUsageBox;
+  static late Box<Map> experienceUsageBox;
 
   static Future<void> init() async {
     await Hive.initFlutter();
     downloadStatBox = await Hive.openBox('download_stat');
-    napUsageBox = await Hive.openBox('usage_nap');
-    sleepUsageBox = await Hive.openBox('usage_sleep');
     userMixesBox = await Hive.openBox('user_mixes_box');
-    syncFirestore();
+    restUsageBox = await Hive.openBox('usage_rest');
+    experienceUsageBox = await Hive.openBox('usage_experience');
     updateDownloadBox();
   }
 
   static Future<void> signOut() async {
+    closeAudioPlayer();
+    await putFireStore();
     await Future.wait([
-      napUsageBox.clear(),
-      sleepUsageBox.clear(),
       userMixesBox.clear(),
-      syncFirestore(),
+      restUsageBox.clear(),
+      experienceUsageBox.clear(),
     ]);
+    await FirebaseAuth.instance.signOut();
   }
 
-  static Future<void> syncFirestore() async {
-    // TODO
+  static CollectionReference<Map<String, dynamic>>? get userCollection {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || user.isAnonymous) return null;
+    return FirebaseFirestore.instance.collection(user.uid);
+  }
+
+  /// Upload all user data saved in local storage [Hive] to
+  /// online storage [FireStore] for signed users only
+  static Future<void> putFireStore({bool onlyMix = false}) async {
+    final temp = userCollection;
+    if (temp == null) return;
+    try {
+      await Future.wait(
+        [
+          userMixesBox,
+          if (!onlyMix) restUsageBox,
+          if (!onlyMix) experienceUsageBox,
+        ].map(
+          (e) => temp.doc(e.name).set(e.toTypeMap),
+        ),
+      );
+    } catch (_) {
+      debugPrint('Upload to firestore failed');
+    }
+  }
+
+  /// Get all user data from online storage [FireStore]
+  /// and saves it in local storage [Hive]
+  static Future<void> pullFireStore() async {
+    final temp = userCollection;
+    if (temp == null) return;
+    try {
+      final snap = await temp.get();
+      for (final item in snap.docs) {
+        // Hive.box(item.id) throws error
+        if (item.id == userMixesBox.name) {
+          userMixesBox.putAll(
+            item.data().map((k, v) => MapEntry(k, (v as List).cast<String>())),
+          );
+        } else if (item.id == restUsageBox.name) {
+          restUsageBox.putAll(
+            item.data().map((k, v) => MapEntry(int.parse(k), v as Map)),
+          );
+        } else if (item.id == experienceUsageBox.name) {
+          experienceUsageBox.putAll(
+            item.data().map(
+                  (k, v) => MapEntry(int.parse(k), v as Map),
+                ),
+          );
+        }
+      }
+    } catch (_) {
+      debugPrint('Failed to get data from firestore');
+    }
   }
 
   static DownloadStatus downloadStat(String? name) {
@@ -73,29 +125,27 @@ class HiveHelper {
     }
   }
 
-  static void saveUsageData(String? mixName) {
-    final isNap = RestTileData.napItems.any((e) => mixName == e.name);
-    final isSleep = RestTileData.sleepItems.any((e) => mixName == e.name);
-    if (isSleep || isNap) {
-      final currentSec = Jiffy().unix();
-      final currentDateInt = Jiffy().toIntDate;
-      final box = isNap ? napUsageBox : sleepUsageBox;
-      final mapData = box.get(currentDateInt);
-      final data = mapData == null
-          ? UsageTileData(
-              names: {},
-              seconds: 0,
-              date: currentDateInt,
-              lastSavedTimeSec: currentSec - 1,
-            )
-          : UsageTileData.fromMap(mapData);
-      if (data.lastSavedTimeSec < currentSec) {
-        data
-          ..lastSavedTimeSec = currentSec
-          ..names.add(mixName!)
-          ..seconds += 1;
-        box.put(currentDateInt, data.toMap());
-      }
+  static void saveUsageData(String? name) {
+    if (name?.isEmpty ?? true) return;
+    final isExp = ExpTileData.items.any((e) => name == e.name);
+    final currentSec = Jiffy().unix();
+    final currentDateInt = Jiffy().toIntDate;
+    final box = isExp ? experienceUsageBox : restUsageBox;
+    final mapData = box.get(currentDateInt);
+    final data = mapData == null
+        ? UsageTileData(
+            names: {},
+            seconds: 0,
+            date: currentDateInt,
+            lastSavedTimeSec: currentSec - 1,
+          )
+        : UsageTileData.fromMap(mapData);
+    if (data.lastSavedTimeSec < currentSec) {
+      data
+        ..lastSavedTimeSec = currentSec
+        ..names.add(name!)
+        ..seconds += 1;
+      box.put(currentDateInt, data.toMap());
     }
   }
 }

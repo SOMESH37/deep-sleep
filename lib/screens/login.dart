@@ -1,5 +1,6 @@
 import 'package:deep_sleep/exporter.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class Login extends StatefulWidget {
   @override
@@ -23,7 +24,7 @@ class _LoginState extends State<Login> {
             idToken: auth.idToken,
           ),
         )
-        .then((_) => Navigator.pop(context));
+        .then(popAndPullData);
     await sign.disconnect();
   }
 
@@ -34,8 +35,13 @@ class _LoginState extends State<Login> {
           .signInWithCredential(
             FacebookAuthProvider.credential(result.accessToken!.token),
           )
-          .then((_) => Navigator.pop(context));
+          .then(popAndPullData);
     }
+  }
+
+  void popAndPullData([_]) {
+    HiveHelper.pullFireStore();
+    Navigator.pop(context);
   }
 
   @override
@@ -130,10 +136,9 @@ class _LoginState extends State<Login> {
                   onPressed: () {
                     if (loading != -1) return;
                     setLoading(2);
-                    FirebaseAuth.instance.signInAnonymously().then((_) {
-                      // setLoading(-1);
-                      Navigator.pop(context);
-                    });
+                    FirebaseAuth.instance
+                        .signInAnonymously()
+                        .then(popAndPullData);
                   },
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(120, 56),

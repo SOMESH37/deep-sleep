@@ -58,9 +58,7 @@ class AppDrawer extends StatelessWidget {
                     return ListTile(
                       onTap: () {
                         Navigator.of(context).pop();
-                        if (item.screen != null) {
-                          item.screen!.push(context);
-                        }
+                        item.onTap(context);
                       },
                       leading: Icon(
                         item.icon,

@@ -7,88 +7,87 @@ class ImageSwipe extends StatelessWidget {
   final bool isTips;
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        CarouselSlider.builder(
-          itemBuilder: (_, i, __) {
-            final item = isTips ? TipsData.items[i] : TerminologyData.items[i];
-            return GestureDetector(
-              onTap: () {
-                if (isTips) {
-                  launch((item as TipsData).link);
-                } else {
-                  Dashboard.changeTitle('Terminology');
-                  TerminologyView(item as TerminologyData).push(context);
-                }
-              },
-              child: Stack(
-                alignment: Alignment.bottomLeft,
-                children: [
-                  Container(
-                    foregroundDecoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      gradient: const LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.white10,
-                          Colors.black87,
-                        ],
-                      ),
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      image: DecorationImage(
-                        fit: BoxFit.cover,
-                        image: Assets.sceneries[i % Assets.sceneries.length],
-                      ),
+    return Padding(
+      padding:
+          EdgeInsets.symmetric(vertical: (isTips ? 2 : 1.6) * Dashboard.pad),
+      child: CarouselSlider.builder(
+        itemBuilder: (_, i, __) {
+          final item = isTips ? TipsData.items[i] : TerminologyData.items[i];
+          return GestureDetector(
+            onTap: () {
+              if (isTips) {
+                launch((item as TipsData).link);
+              } else {
+                AppBarTitle.changeTitle('Terminology');
+                TerminologyView(item as TerminologyData).push(context);
+              }
+            },
+            child: Stack(
+              alignment: Alignment.bottomLeft,
+              children: [
+                Container(
+                  foregroundDecoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    gradient: const LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.white10,
+                        Colors.black87,
+                      ],
                     ),
                   ),
-                  Padding(
-                    padding: EdgeInsets.all(
-                      (isTips ? 2 : 1.6) * Dashboard.pad,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: isTips
-                          ? [
-                              Text(
-                                (item as TipsData).tip.toLowerCase().capitalize,
-                                style: const TextStyle(
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ]
-                          : [
-                              Txt.bigTitle((item as TerminologyData).title),
-                              const SizedBox(height: Dashboard.pad),
-                              AutoSizeText(
-                                item.body,
-                                maxLines: 5,
-                                minFontSize: 14,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    image: DecorationImage(
+                      fit: BoxFit.cover,
+                      image: Assets.sceneries[i % Assets.sceneries.length],
                     ),
                   ),
-                ],
-              ),
-            );
-          },
-          itemCount:
-              isTips ? TipsData.items.length : TerminologyData.items.length,
-          options: CarouselOptions(
-            height: (Screen.height - 250 - Dashboard.openPlayerHeight)
-                .clamp(0.0, double.infinity),
-            viewportFraction: isTips ? 0.75 : 0.85,
-            enlargeCenterPage: true,
-            autoPlay: isTips,
-          ),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(
+                    (isTips ? 2 : 1.6) * Dashboard.pad,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: isTips
+                        ? [
+                            AutoSizeText(
+                              (item as TipsData).tip.toLowerCase().capitalize,
+                              maxLines: 4,
+                              style: const TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ]
+                        : [
+                            Txt.bigTitle((item as TerminologyData).title),
+                            const SizedBox(height: Dashboard.pad),
+                            AutoSizeText(
+                              item.body,
+                              maxLines: 5,
+                              minFontSize: 14,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+        itemCount:
+            isTips ? TipsData.items.length : TerminologyData.items.length,
+        options: CarouselOptions(
+          height: double.infinity,
+          viewportFraction: isTips ? 0.75 : 0.85,
+          enlargeCenterPage: true,
+          autoPlay: isTips,
         ),
-      ],
+      ),
     );
   }
 }

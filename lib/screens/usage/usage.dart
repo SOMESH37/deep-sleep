@@ -13,10 +13,7 @@ class Usage extends StatelessWidget {
         child: Column(
           children: [
             const AppTabBar(
-              tabs: [
-                Tab(text: 'Nap time'),
-                Tab(text: 'Sleep time'),
-              ],
+              tabs: ['Rest', 'Experience'],
             ),
             Expanded(
               child: TabBarView(
@@ -24,8 +21,8 @@ class Usage extends StatelessWidget {
                   2,
                   (i) => ValueListenableBuilder<Box<Map>>(
                     valueListenable: i == 0
-                        ? HiveHelper.napUsageBox.listenable()
-                        : HiveHelper.sleepUsageBox.listenable(),
+                        ? HiveHelper.restUsageBox.listenable()
+                        : HiveHelper.experienceUsageBox.listenable(),
                     builder: (_, box, __) {
                       final list = box.values
                           .map(UsageTileData.fromMap)

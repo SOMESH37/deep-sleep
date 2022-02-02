@@ -63,3 +63,8 @@ extension OnDuration on Duration {
 extension OnJiffy on Jiffy {
   int get toIntDate => int.parse(Jiffy(this).format('yyyyMMdd'));
 }
+
+extension OnBox<T> on Box<T> {
+  Map<String, T> get toTypeMap =>
+      toMap().map<String, T>((k, v) => MapEntry(k.toString(), v));
+}

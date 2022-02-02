@@ -33,19 +33,27 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+
+    Future.delayed(const Duration(seconds: 3), HiveHelper.putFireStore);
+
     final cache = AssetsAudioPlayerCache(
       audioKeyTransformer: (audio) async =>
           removeHttpSpecialCharsFromStrings(audio.path),
       cachePathProvider: (_, key) async => '${MyDirectory.getCachePath}/$key',
     );
-    audioPlayer = AssetsAudioPlayer.withId('main')
-      ..cachePathProvider = cache
-      ..realtimePlayingInfos.listen((v) {
-        if (v.isPlaying) {
-          HiveHelper.saveUsageData(v.current?.audio.audio.metas.title);
-        }
-      });
-    expPlayer = AssetsAudioPlayer.withId('exp')..cachePathProvider = cache;
+
+    AssetsAudioPlayer getAudioPlayer(String id) {
+      return AssetsAudioPlayer.withId(id)
+        ..cachePathProvider = cache
+        ..realtimePlayingInfos.listen((v) {
+          if (v.isPlaying) {
+            HiveHelper.saveUsageData(v.current?.audio.audio.metas.title);
+          }
+        });
+    }
+
+    audioPlayer = getAudioPlayer('main');
+    expPlayer = getAudioPlayer('exp');
   }
 
   @override
@@ -63,10 +71,9 @@ class _MyAppState extends State<MyApp> {
         return false;
       },
       child: MaterialApp(
-        // debugShowMaterialGrid: true,
         title: 'Deep Sleep',
         theme: kAppTheme,
-        home: StreamBuilder(
+        home: StreamBuilder<User?>(
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (context, snap) {
             Screen.init(context);

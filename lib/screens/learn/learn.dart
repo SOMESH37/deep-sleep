@@ -11,9 +11,9 @@ class Learn extends StatelessWidget {
         children: [
           const AppTabBar(
             tabs: [
-              Tab(text: 'Tips'),
-              Tab(text: 'Articles'),
-              Tab(text: 'Terminology'),
+              'Tips',
+              'Articles',
+              'Terminology',
             ],
           ),
           Expanded(

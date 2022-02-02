@@ -13,7 +13,7 @@ class ArticleList extends StatelessWidget {
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () {
-            Dashboard.changeTitle('Article');
+            AppBarTitle.changeTitle('Article');
             ArticleDetail(item).push(context);
           },
           child: Column(

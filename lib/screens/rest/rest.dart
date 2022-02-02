@@ -11,9 +11,9 @@ class Rest extends StatelessWidget {
         children: [
           const AppTabBar(
             tabs: [
-              Tab(text: 'Power nap'),
-              Tab(text: 'Good sleep'),
-              Tab(text: 'My space'),
+              'Power nap',
+              'Good sleep',
+              'My space',
             ],
           ),
           Expanded(
@@ -88,62 +88,83 @@ class MySpaceView extends StatelessWidget {
 class RestPlaylistTile extends StatelessWidget {
   RestPlaylistTile(this.name);
   final String name;
-  late final songs = List<RestTileData>.from(
-    RestTileData.items.where(
-      (e) => HiveHelper.userMixesBox.get(name)!.any((ele) => e.name == ele),
-    ),
-  );
-  final isPlaying = false;
+  late final songs = HiveHelper.userMixesBox
+      .get(name)!
+      .map<Audio>(
+        (e) => RestTileData.items
+            .firstWhere((ele) => e == ele.name)
+            .audio(art: name),
+      )
+      .toList();
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          height: 64,
-          width: 64,
-          padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            color: Colors.white10,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: GridView.builder(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 4,
-              mainAxisSpacing: 4,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        if (audioPlayer.isBuffering.value) return;
+        audioPlayer.open(
+          Playlist(audios: songs),
+          showNotification: true,
+          loopMode: LoopMode.playlist,
+        );
+      },
+      child: Row(
+        children: [
+          Container(
+            height: 64,
+            width: 64,
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: Colors.white10,
+              borderRadius: BorderRadius.circular(16),
             ),
-            itemBuilder: (_, i) => ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.asset(
-                songs[i].imgPath,
-                fit: BoxFit.cover,
-                opacity: AlwaysStoppedAnimation(1 - i * 0.1),
+            child: GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 4,
+                mainAxisSpacing: 4,
               ),
+              itemBuilder: (_, i) => ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset(
+                  songs[i].metas.image!.path,
+                  fit: BoxFit.cover,
+                  opacity: AlwaysStoppedAnimation(1 - i * 0.1),
+                ),
+              ),
+              itemCount: min(songs.length, 4),
             ),
-            itemCount: min(songs.length, 4),
           ),
-        ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Txt.title(name),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Txt.title(name),
+            ),
           ),
-        ),
-        if (!isPlaying)
-          const IconButton(
-            onPressed: null,
-            tooltip: 'Play',
-            disabledColor: Colors.white,
-            icon: Icon(Icons.play_arrow_rounded),
+          StreamBuilder<RealtimePlayingInfos?>(
+            stream: audioPlayer.realtimePlayingInfos,
+            builder: (_, snap) {
+              if (snap.data?.current?.audio.audio.metas.artist != name) {
+                return const IconButton(
+                  onPressed: null,
+                  tooltip: 'Play',
+                  disabledColor: Colors.white,
+                  icon: Icon(Icons.play_arrow_rounded),
+                );
+              } else {
+                return const SizedBox.shrink();
+              }
+            },
           ),
-        IconButton(
-          onPressed: () {
-            EditPlaylist(name).push(context, useRootNav: true);
-          },
-          tooltip: 'Edit',
-          icon: const Icon(Icons.edit_rounded),
-        ),
-      ],
+          IconButton(
+            onPressed: () {
+              EditPlaylist(name).push(context, useRootNav: true);
+            },
+            tooltip: 'Edit',
+            icon: const Icon(Icons.edit_rounded),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -223,17 +244,7 @@ class RestTile extends StatelessWidget {
         if (data != null) {
           data!.play();
         } else {
-          bottomSheet(
-            context,
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 40),
-                child: Txt.bigTitle('Coming soon'),
-              ),
-            ),
-            useRootNav: true,
-          );
-          // CreateMix().push(context, useRootNav: true);
+          CreateMix().push(context, useRootNav: true);
         }
       },
       child: StreamBuilder<Playing?>(
@@ -242,17 +253,13 @@ class RestTile extends StatelessWidget {
           final isPlaying = snap.data?.audio.audio.metas.title == data?.name;
           return Row(
             children: [
-              Container(
-                height: 64,
-                width: 64,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  image: DecorationImage(
-                    fit: BoxFit.cover,
-                    image: AssetImage(
-                      data == null ? Assets.splash.path : data!.imgPath,
-                    ),
-                  ),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.asset(
+                  data == null ? Assets.splash.path : data!.imgPath,
+                  height: 64,
+                  width: 64,
+                  fit: BoxFit.cover,
                 ),
               ),
               Expanded(

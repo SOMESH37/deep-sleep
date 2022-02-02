@@ -3,26 +3,29 @@ import 'package:deep_sleep/exporter.dart';
 class DrawerData {
   String name;
   IconData icon;
-  Widget? screen;
+  Function(BuildContext c) onTap;
   DrawerData._({
     required this.name,
     required this.icon,
-    this.screen,
+    required this.onTap,
   });
   static final items = <DrawerData>[
     DrawerData._(
       name: 'Usage',
       icon: Icons.bar_chart_rounded,
-      screen: Usage(),
+      onTap: (c) => Usage().push(c),
     ),
     DrawerData._(
       name: 'Settings',
       icon: Icons.settings_rounded,
-      screen: Setting(),
+      onTap: (c) => Setting().push(c),
     ),
     DrawerData._(
       name: 'Rate us on play store ',
       icon: Icons.star_rate_rounded,
+      onTap: (c) => launch(
+        'https://play.google.com/store/apps/details?id=com.myrl.deep_sleep',
+      ),
     ),
   ];
 }

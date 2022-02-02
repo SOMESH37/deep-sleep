@@ -39,9 +39,7 @@ Future<T?> bottomSheet<T>(
                   ],
                 ),
               ),
-              child: SafeArea(
-                child: child,
-              ),
+              child: SafeArea(child: child),
             ),
           ),
         ),
@@ -51,8 +49,9 @@ Future<T?> bottomSheet<T>(
 }
 
 class AppTabBar extends StatelessWidget {
+  static final tabAutoSizeGroup = AutoSizeGroup();
   const AppTabBar({required this.tabs});
-  final List<Widget> tabs;
+  final List<String> tabs;
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -64,7 +63,20 @@ class AppTabBar extends StatelessWidget {
         color: Colours.tabUnselected,
       ),
       child: TabBar(
-        tabs: tabs,
+        tabs: tabs
+            .map(
+              (e) => Center(
+                child: AutoSizeText(
+                  e,
+                  maxLines: 1,
+                  minFontSize: 8,
+                  softWrap: false,
+                  group: tabAutoSizeGroup,
+                  overflow: TextOverflow.fade,
+                ),
+              ),
+            )
+            .toList(),
         indicatorWeight: 0,
         enableFeedback: false,
         indicator: const ShapeDecoration(

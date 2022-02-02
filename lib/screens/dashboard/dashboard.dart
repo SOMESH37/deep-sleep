@@ -5,20 +5,13 @@ import 'package:deep_sleep/screens/dashboard/drawer.dart';
 class Dashboard extends StatefulWidget {
   static const pad = 16.0;
   static const openPlayerHeight = 56.0;
-  static late void Function(String?) changeTitle;
+  static final swipeDuration = kAnimationDuration * 0.4;
   @override
   _DashboardState createState() => _DashboardState();
 }
 
-class _DashboardState extends State<Dashboard>
-    with TickerProviderStateMixin<Dashboard> {
+class _DashboardState extends State<Dashboard> {
   var _currentIndex = 0;
-  String? _title;
-  final _swipeDuration = kAnimationDuration * 0.4;
-  late final _animationController = AnimationController(
-    vsync: this,
-    duration: kAnimationDuration,
-  );
   final _screens = List.generate(
     DashboardData.items.length,
     (i) => Navigator(
@@ -26,36 +19,18 @@ class _DashboardState extends State<Dashboard>
       onGenerateRoute: (_) => DashboardData.items[i].screen.route,
     ),
   );
-  final _titles = List.generate(
-    DashboardData.items.length,
-    (i) => Text(DashboardData.items[i].appBarTitle),
-  );
-
-  void changeTitle(String? t) => setState(() => _title = t);
 
   Future<bool> _onWillPop() async {
     if (await DashboardData.items[_currentIndex].navigatorKey.currentState
             ?.maybePop() ??
         false) {
-      changeTitle(null);
+      AppBarTitle.changeTitle(null);
       return false;
     } else if (_currentIndex != 0) {
       setState(() => _currentIndex = 0);
       return false;
     }
     return true;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    Dashboard.changeTitle = changeTitle;
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    _animationController.dispose();
   }
 
   @override
@@ -67,60 +42,11 @@ class _DashboardState extends State<Dashboard>
         appBar: AppBar(
           automaticallyImplyLeading: false,
           titleSpacing: 0,
-          title: Builder(
-            builder: (c) {
-              final nav =
-                  DashboardData.items[_currentIndex].navigatorKey.currentState!;
-              if (nav.canPop()) {
-                _animationController.forward();
-              } else {
-                _animationController.reverse();
-              }
-              return Row(
-                children: [
-                  SizedBox(
-                    height: 56,
-                    width: 56,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () async {
-                        if (_animationController.isAnimating) return;
-                        if (await nav.maybePop()) {
-                          if (!nav.canPop()) {
-                            changeTitle(null);
-                            _animationController.reverse();
-                          }
-                        } else {
-                          Scaffold.of(c).openDrawer();
-                        }
-                      },
-                      child: Center(
-                        child: AnimatedIcon(
-                          icon: AnimatedIcons.menu_arrow,
-                          progress: _animationController,
-                        ),
-                      ),
-                    ),
-                  ),
-                  AnimatedIndexedStack(
-                    index: _title != null && nav.canPop()
-                        ? DashboardData.items.length
-                        : _currentIndex,
-                    duration: _swipeDuration,
-                    type: AnimatedIndexedStackType.horizontal,
-                    children: [
-                      ..._titles,
-                      Text(_title ?? ''),
-                    ],
-                  ),
-                ],
-              );
-            },
-          ),
+          title: AppBarTitle(_currentIndex),
         ),
         body: AnimatedIndexedStack(
           index: _currentIndex,
-          duration: _swipeDuration,
+          duration: Dashboard.swipeDuration,
           children: _screens,
         ),
         bottomNavigationBar: Column(
@@ -129,7 +55,7 @@ class _DashboardState extends State<Dashboard>
             AnimatedSize(
               curve: kAnimationCurve,
               duration: kAnimationDuration,
-              child: OpenContainer<Color>(
+              child: OpenContainer(
                 closedElevation: 4,
                 openColor: Colours.player,
                 middleColor: Colours.player,
@@ -148,34 +74,30 @@ class _DashboardState extends State<Dashboard>
                     final item = DashboardData.items[i];
                     return InkWell(
                       onTap: () => setState(() => _currentIndex = i),
-                      child: AnimatedSize(
-                        curve: kAnimationCurve,
-                        duration: kAnimationDuration,
-                        child: Container(
-                          width: Screen.width / DashboardData.items.length,
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: AnimatedOpacity(
-                            curve: kAnimationCurve,
-                            opacity: _currentIndex == i ? 1 : 0.46,
-                            duration: kAnimationDuration,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SvgPicture.asset(
-                                  item.iconPath,
-                                  height: 26,
+                      child: Container(
+                        width: Screen.width / DashboardData.items.length,
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: AnimatedOpacity(
+                          curve: kAnimationCurve,
+                          opacity: _currentIndex == i ? 1 : 0.46,
+                          duration: kAnimationDuration,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SvgPicture.asset(
+                                item.iconPath,
+                                height: 26,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                item.name,
+                                maxLines: 1,
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 13,
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  item.name,
-                                  maxLines: 1,
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
                       ),

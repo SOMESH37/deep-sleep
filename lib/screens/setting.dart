@@ -51,8 +51,7 @@ class _SettingState extends State<Setting> {
                 ),
                 TextButton(
                   onPressed: () {
-                    FirebaseAuth.instance.signOut().then((_) {
-                      HiveHelper.signOut();
+                    HiveHelper.signOut().then((_) {
                       Navigator.pop(context);
                     });
                   },

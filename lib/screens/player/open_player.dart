@@ -1,112 +1,4 @@
-import 'package:deep_sleep/exporter.dart';
-
-const _pad = EdgeInsets.all(32);
-final _playerDuration = kAnimationDuration * 0.3;
-const _smallIconSize = 32.0;
-Stopper? _stopper;
-late AssetsAudioPlayer audioPlayer;
-late AssetsAudioPlayer expPlayer;
-
-void closeAudioPlayer() {
-  audioPlayer
-    ..setPlaySpeed(1)
-    ..stop();
-  _stopper = null;
-}
-
-class ClosedPlayer extends StatefulWidget {
-  static const closedProgressHeight = 1.2;
-  @override
-  _ClosedPlayerState createState() => _ClosedPlayerState();
-}
-
-class _ClosedPlayerState extends State<ClosedPlayer> {
-  @override
-  Widget build(BuildContext context) {
-    return audioPlayer.builderRealtimePlayingInfos(
-      builder: (_, info) {
-        if (info.current == null) {
-          return const SizedBox.shrink();
-        }
-        final data = info.current!.audio.audio.metas;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AnimatedContainer(
-              duration: kAnimationDuration,
-              curve: kAnimationCurve,
-              width: info.playingPercent * Screen.width,
-              height: ClosedPlayer.closedProgressHeight,
-              decoration: const ShapeDecoration(
-                color: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.horizontal(
-                    right: Radius.circular(
-                      ClosedPlayer.closedProgressHeight,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(
-              height: Dashboard.openPlayerHeight -
-                  ClosedPlayer.closedProgressHeight,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  AspectRatio(
-                    aspectRatio: 1,
-                    child: Image.asset(
-                      data.image!.path,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 16),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Txt.bigTitle(
-                          data.title!,
-                          isMarquee: true,
-                        ),
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => audioPlayer.playOrPause(),
-                    icon: AnimatedSwitcher(
-                      duration: _playerDuration,
-                      switchInCurve: kAnimationCurve,
-                      switchOutCurve: kAnimationCurve,
-                      child: Icon(
-                        info.isPlaying
-                            ? Icons.pause_rounded
-                            : Icons.play_arrow_rounded,
-                        size: 32,
-                        key: ValueKey('Closed player : ${info.isPlaying}'),
-                      ),
-                    ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.only(right: 8),
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.close_rounded,
-                        size: 30,
-                      ),
-                      onPressed: closeAudioPlayer,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
+part of 'player.dart';
 
 class OpenPlayer extends StatefulWidget {
   @override
@@ -167,37 +59,40 @@ class _OpenPlayerState extends State<OpenPlayer> {
                     ],
                   ),
                 ),
+                SizedBox(
+                  height: 33 * Screen.textScaleFactor,
+                  child: Txt.bigTitle(
+                    data.metas.title!,
+                    isMarquee: true,
+                  ),
+                ),
+                Txt.body(data.metas.artist!),
                 Expanded(
-                  child: Padding(
-                    padding: _pad.copyWith(top: 0),
-                    child: Column(
-                      children: [
-                        SizedBox(
-                          height: 33 * Screen.textScaleFactor,
-                          child: Txt.bigTitle(
-                            data.metas.title!,
-                            isMarquee: true,
-                          ),
-                        ),
-                        Txt.body(data.metas.artist!),
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 32),
-                            child: Center(
-                              child: AspectRatio(
-                                aspectRatio: 1,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.asset(
-                                    data.metas.image!.path,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
+                  child: IgnorePointer(
+                    ignoring: info.isBuffering,
+                    child: PageView.builder(
+                      key: ValueKey('PageView : ${info.current.hashCode}'),
+                      onPageChanged: audioPlayer.playlistPlayAtIndex,
+                      itemCount: info.current!.playlist.audios.length,
+                      controller: PageController(
+                        initialPage: info.current!.playlist.currentIndex,
+                      ),
+                      itemBuilder: (_, i) => Padding(
+                        padding: _pad,
+                        child: Center(
+                          child: AspectRatio(
+                            aspectRatio: 1,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.asset(
+                                info.current!.playlist.audios[i].metas.image!
+                                    .path,
+                                fit: BoxFit.cover,
                               ),
                             ),
                           ),
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
@@ -350,7 +245,7 @@ class _OpenPlayerState extends State<OpenPlayer> {
                                       Navigator.pop(context);
                                     },
                                   ),
-                                ...{10, 15, 30, 60, 90}
+                                ...{5, 10, 15, 30, 60, 90}
                                     .map(
                                       (e) => ListTile(
                                         title: Text('$e minutes'),
@@ -388,83 +283,6 @@ class _OpenPlayerState extends State<OpenPlayer> {
           ),
         );
       },
-    );
-  }
-}
-
-class PositionSeekWidget extends StatefulWidget {
-  final Duration currentPosition;
-  final Duration duration;
-  final Function(Duration) seekTo;
-
-  const PositionSeekWidget({
-    required this.currentPosition,
-    required this.duration,
-    required this.seekTo,
-  });
-
-  @override
-  _PositionSeekWidgetState createState() => _PositionSeekWidgetState();
-}
-
-class _PositionSeekWidgetState extends State<PositionSeekWidget> {
-  late Duration _visibleValue = widget.currentPosition;
-  bool listenOnlyUserInteraction = false;
-  double get percent => widget.duration.inMilliseconds == 0
-      ? 0
-      : _visibleValue.inMilliseconds / widget.duration.inMilliseconds;
-
-  @override
-  void didUpdateWidget(PositionSeekWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (!listenOnlyUserInteraction) {
-      _visibleValue = widget.currentPosition;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        children: [
-          SliderTheme(
-            data: const SliderThemeData(trackHeight: 2),
-            child: Slider(
-              inactiveColor: Colors.white30,
-              activeColor: Colors.white,
-              max: widget.duration.inMilliseconds.toDouble(),
-              value: percent.clamp(0.0, 1.0) * widget.duration.inMilliseconds,
-              onChangeEnd: (newValue) {
-                setState(() {
-                  listenOnlyUserInteraction = false;
-                  widget.seekTo(_visibleValue);
-                });
-              },
-              onChangeStart: (_) {
-                setState(() {
-                  listenOnlyUserInteraction = true;
-                });
-              },
-              onChanged: (newValue) {
-                setState(() {
-                  _visibleValue = Duration(milliseconds: newValue.floor());
-                });
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Txt.body(widget.currentPosition.durationToString),
-                Txt.body(widget.duration.durationToString),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

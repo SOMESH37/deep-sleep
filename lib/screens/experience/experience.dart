@@ -11,9 +11,9 @@ class Experience extends StatelessWidget {
         children: [
           const AppTabBar(
             tabs: [
-              Tab(text: 'All'),
-              Tab(text: 'Nature'),
-              Tab(text: 'Instruments'),
+              'All',
+              'Nature',
+              'Instruments',
             ],
           ),
           Expanded(

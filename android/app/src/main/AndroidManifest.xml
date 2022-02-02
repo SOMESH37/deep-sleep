@@ -20,8 +20,7 @@
    <application
         android:label="Deep Sleep"
         android:usesCleartextTraffic="true"
-        android:icon="@mipmap/ic_launcher">
-            <!-- android:name="com.ryanheise.audioservice.AudioServiceActivity" -->       
+        android:icon="@mipmap/ic_launcher">  
        <meta-data
            android:name="com.facebook.sdk.ApplicationId"
            android:value="@string/facebook_app_id" />
@@ -52,27 +51,12 @@
             android:windowSoftInputMode="adjustResize">
             <meta-data
               android:name="io.flutter.embedding.android.NormalTheme"
-              android:resource="@style/NormalTheme"
-              />
-            <meta-data
-              android:name="io.flutter.embedding.android.SplashScreenDrawable"
-              android:resource="@drawable/launch_background"
-              />
+              android:resource="@style/NormalTheme"/>
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <!-- <service android:name="com.ryanheise.audioservice.AudioService">
-          <intent-filter>
-           <action android:name="android.media.browse.MediaBrowserService" />
-          </intent-filter>
-        </service>
-        <receiver android:name="com.ryanheise.audioservice.MediaButtonReceiver" >
-          <intent-filter>
-           <action android:name="android.intent.action.MEDIA_BUTTON" />
-          </intent-filter>
-        </receiver>  -->
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
